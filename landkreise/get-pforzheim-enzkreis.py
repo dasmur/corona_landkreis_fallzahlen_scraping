@@ -1,8 +1,18 @@
+"""Parser for Pforzheim's Corona case numbers
+
+This script parses the website of Pforzheim to extract the case numbers
+of Pforzheim itself and Endkreis.
+
+Return code:
+* 1: if the parser could not extract the case number
+
+"""
 from bs4 import BeautifulSoup
 
 import requests
 import datetime
 import re
+import sys
 
 import locale
 locale.setlocale(locale.LC_TIME, "de_DE.utf-8")
@@ -22,8 +32,12 @@ cases_enzkreis_pattern = "im Enzkreis \d+"
 text=clear_text_of_ambigous_chars(bs.getText())
 text=remove_chars_from_text(text,["\n"])
 
-status_raw = re.findall("Stand: .* Uhr\)", text)[0]
-status= get_status(status_raw)
+status_raw = re.findall("Stand: .* Uhr\)", text)
+if not status_raw:
+    # - early exist, because the regex did not match anything
+    #   Possible reason: website changed the structure?
+    sys.exit(1)
+status= get_status(status_raw[0])
 
 
 cases_pforzheim_raw = re.findall(cases_pforzheim_pattern,text)[0]
